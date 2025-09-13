@@ -1,5 +1,6 @@
 pipeline {
-    agent { label 'docker-agent' }  
+    agent any
+    
     environment {
         IMAGE_NAME = "hapi-fhir-basic-auth"
         CONTAINER_NAME = "hapi-fhir"
@@ -14,44 +15,14 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'master', url: 'https://github.com/DriesVanHool/hapi-fhir-jpaserver-basic-interceptors.git'
-                echo "Building commit: ${env.GIT_COMMIT}"
             }
         }
-                    
-    stage('Build Maven') {
-        steps {
-            sh '''
-                # Clean up any existing container first
-                docker rm -f temp-maven || true
-                
-                # Create container with maximum memory and swap
-                docker create --name temp-maven --memory=8g --memory-swap=12g maven:latest
-                docker cp . temp-maven:/usr/src/app
-                docker start temp-maven
-                
-                # Run Maven with larger heap and parallel disabled
-                docker exec temp-maven sh -c "
-                    export MAVEN_OPTS='-Xmx6g -Xms2g -XX:MaxPermSize=512m'
-                    cd /usr/src/app
-                    mvn clean package -DskipTests -T 1
-                "
-                
-                # Copy the built files back
-                docker cp temp-maven:/usr/src/app/target ./target
-                
-                # Clean up
-                docker rm -f temp-maven
-                
-                echo "Maven build completed"
-            '''
-        }
-    }
+        
         stage('Build & Tag Image') {
             steps {
                 sh """
                 docker build --pull --no-cache -t ${IMAGE_NAME}:latest .
                 """
-                echo "Docker image built: ${IMAGE_NAME}:latest"
             }
         }
         
@@ -64,26 +35,6 @@ pipeline {
                     --restart unless-stopped \
                     ${IMAGE_NAME}:latest
                 """
-                echo "Container deployed on port ${DOCKER_PORT}"
-            }
-        }
-        
-        stage('Health Check') {
-            steps {
-                sh '''
-                    echo "Waiting for HAPI FHIR to start..."
-                    sleep 30
-                    
-                    for i in {1..6}; do
-                        if curl -f http://localhost:${DOCKER_PORT}/fhir/metadata > /dev/null 2>&1; then
-                            echo "Health check passed"
-                            exit 0
-                        fi
-                        echo "Attempt $i failed, retrying..."
-                        sleep 10
-                    done
-                    echo "Health check timeout"
-                '''
             }
         }
     }
@@ -93,7 +44,7 @@ pipeline {
             echo "Deployment successful! HAPI FHIR is live at http://localhost:${DOCKER_PORT}"
         }
         failure {
-            echo "Build or deployment failed. Check logs."
+            echo "Build failed. Check logs."
         }
         cleanup {
             sh 'docker image prune -f || true'
