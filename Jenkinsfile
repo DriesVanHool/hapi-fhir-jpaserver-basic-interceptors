@@ -17,27 +17,19 @@ pipeline {
                 echo "Building commit: ${env.GIT_COMMIT}"
             }
         }
-            
+                
     stage('Build Maven') {
         steps {
             sh '''
-                # Create a temporary container and copy files
-                docker create --name temp-maven maven:latest
-                docker cp . temp-maven:/usr/src/app
-                docker start temp-maven
-                docker exec temp-maven mvn -f /usr/src/app/pom.xml clean package -DskipTests
-                
-                # Copy the built files back
-                docker cp temp-maven:/usr/src/app/target ./target
-                
-                # Clean up
-                docker rm -f temp-maven
-                
-                echo "Maven build completed"
+                docker run --rm \
+                    --memory=2g \
+                    -v "$(pwd)":/usr/src/mymaven \
+                    -w /usr/src/mymaven \
+                    maven:3.8-openjdk-17 \
+                    mvn clean package -DskipTests
             '''
         }
     }
-        
         stage('Build & Tag Image') {
             steps {
                 sh """
