@@ -22,7 +22,7 @@ pipeline {
     stage('Build Maven') {
         steps {
             sh '''
-                docker run --rm -v "$(pwd)":/workspace -w /workspace maven:latest mvn clean package -DskipTests
+                docker run --rm -v "$(pwd)":/usr/src/app -w /usr/src/app maven:latest mvn clean package -DskipTests
                 echo "Maven build completed"
             '''
         }
