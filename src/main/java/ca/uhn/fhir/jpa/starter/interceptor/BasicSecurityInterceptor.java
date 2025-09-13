@@ -16,11 +16,8 @@ import java.util.Objects;
 
 @Interceptor
 public class BasicSecurityInterceptor {
-	private final BasicAuthProps basicAuthProps;
 	@Autowired
-	public BasicSecurityInterceptor(BasicAuthProps authProperties) {
-		this.basicAuthProps = authProperties;
-	}
+	private final BasicAuthProps basicAuthProps;
 
 	/**
 	 * This interceptor implements HTTP Basic Auth, which specifies that
