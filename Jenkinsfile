@@ -18,15 +18,15 @@ pipeline {
                 echo "Building commit: ${env.GIT_COMMIT}"
             }
         }
-        
-        stage('Build Maven') {
-            steps {
-                sh '''
-                    docker run --rm -v "$(pwd)":/workspace -w /workspace maven:3.9.6-openjdk-17 mvn clean package -DskipTests
-                    echo "Maven build completed"
-                '''
-            }
+            
+    stage('Build Maven') {
+        steps {
+            sh '''
+                docker run --rm -v "$(pwd)":/workspace -w /workspace maven:latest mvn clean package -DskipTests
+                echo "Maven build completed"
+            '''
         }
+    }
         
         stage('Build & Tag Image') {
             steps {
