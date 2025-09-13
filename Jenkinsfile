@@ -18,11 +18,24 @@ pipeline {
             }
         }
             
+    stage('Debug') {
+        steps {
+            sh '''
+                echo "=== HOST DIRECTORY ==="
+                pwd
+                ls -la
+                echo "=== CHECKING FOR POM ==="
+                ls -la pom.xml || echo "No pom.xml found"
+                echo "=== DOCKER CONTAINER DIRECTORY ==="
+                docker run --rm -v "$(pwd)":/usr/src/app -w /usr/src/app maven:latest ls -la
+            '''
+        }
+    }
+
     stage('Build Maven') {
         steps {
             sh '''
                 docker run --rm -v "$(pwd)":/usr/src/app -w /usr/src/app maven:latest mvn clean package -DskipTests
-                echo "Maven build completed"
             '''
         }
     }
