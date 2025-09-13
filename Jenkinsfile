@@ -1,6 +1,5 @@
 pipeline {
-    agent any
-    
+    agent { label 'master' }  
     environment {
         IMAGE_NAME = "hapi-fhir-basic-auth"
         CONTAINER_NAME = "hapi-fhir"
