@@ -21,6 +21,9 @@ pipeline {
     stage('Build Maven') {
         steps {
             sh '''
+                # Clean up any existing container first
+                docker rm -f temp-maven || true
+                
                 # Create container with more memory and proper Java opts
                 docker create --name temp-maven --memory=4g maven:latest
                 docker cp . temp-maven:/usr/src/app
