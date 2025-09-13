@@ -18,24 +18,22 @@ pipeline {
             }
         }
             
-    stage('Debug') {
-        steps {
-            sh '''
-                echo "=== HOST DIRECTORY ==="
-                pwd
-                ls -la
-                echo "=== CHECKING FOR POM ==="
-                ls -la pom.xml || echo "No pom.xml found"
-                echo "=== DOCKER CONTAINER DIRECTORY ==="
-                docker run --rm -v "$(pwd)":/usr/src/app -w /usr/src/app maven:latest ls -la
-            '''
-        }
-    }
-
     stage('Build Maven') {
         steps {
             sh '''
-                docker run --rm -v "$(pwd)":/usr/src/app -w /usr/src/app maven:latest mvn clean package -DskipTests
+                # Create a temporary container and copy files
+                docker create --name temp-maven maven:latest
+                docker cp . temp-maven:/usr/src/app
+                docker start temp-maven
+                docker exec temp-maven mvn -f /usr/src/app/pom.xml clean package -DskipTests
+                
+                # Copy the built files back
+                docker cp temp-maven:/usr/src/app/target ./target
+                
+                # Clean up
+                docker rm -f temp-maven
+                
+                echo "Maven build completed"
             '''
         }
     }
