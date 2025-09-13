@@ -11,10 +11,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
 @Interceptor
+@Component
 public class BasicSecurityInterceptor {
     private BasicAuthProps basicAuthProps;
 

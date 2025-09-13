@@ -48,6 +48,7 @@ import ca.uhn.fhir.jpa.search.IStaleSearchDeletingSvc;
 import ca.uhn.fhir.jpa.search.StaleSearchDeletingSvcImpl;
 import ca.uhn.fhir.jpa.starter.AppProperties;
 import ca.uhn.fhir.jpa.starter.annotations.OnCorsPresent;
+import ca.uhn.fhir.jpa.starter.interceptor.BasicSecurityInterceptor;
 import ca.uhn.fhir.jpa.starter.annotations.OnImplementationGuidesPresent;
 import ca.uhn.fhir.jpa.starter.common.validation.IRepositoryValidationInterceptorFactory;
 import ca.uhn.fhir.jpa.starter.ig.ExtendedPackageInstallationSpec;
@@ -110,6 +111,8 @@ import static ca.uhn.fhir.jpa.starter.common.validation.IRepositoryValidationInt
 @ComponentScan(basePackages = {"${hapi.fhir.custom-bean-packages:}"})
 @Import(ThreadPoolFactoryConfig.class)
 public class StarterJpaConfig {
+	@Autowired
+	private BasicSecurityInterceptor basicSecurityInterceptor;
 
 	private static final Logger ourLog = LoggerFactory.getLogger(StarterJpaConfig.class);
 
@@ -335,6 +338,7 @@ public class StarterJpaConfig {
 
 		fhirServer.registerProviders(resourceProviderFactory.createProviders());
 		fhirServer.registerProvider(jpaSystemProvider);
+		fhirServer.registerInterceptor(basicSecurityInterceptor);
 		fhirServer.setServerConformanceProvider(calculateConformanceProvider(
 				fhirSystemDao, fhirServer, jpaStorageSettings, searchParamRegistry, theValidationSupport));
 
