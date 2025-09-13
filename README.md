@@ -1,4 +1,4 @@
-# HAPI-FHIR Starter Project
+# HAPI-FHIR Basic Interceptors
 
 This project is a complete starter project you can use to deploy a FHIR server using HAPI FHIR JPA.
 
