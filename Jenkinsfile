@@ -17,16 +17,29 @@ pipeline {
                 echo "Building commit: ${env.GIT_COMMIT}"
             }
         }
-                
+                    
     stage('Build Maven') {
         steps {
             sh '''
-                docker run --rm \
-                    --memory=2g \
-                    -v "$(pwd)":/usr/src/mymaven \
-                    -w /usr/src/mymaven \
-                    maven:3.8-openjdk-17 \
+                # Create container with more memory and proper Java opts
+                docker create --name temp-maven --memory=4g maven:latest
+                docker cp . temp-maven:/usr/src/app
+                docker start temp-maven
+                
+                # Run Maven with memory settings
+                docker exec temp-maven sh -c "
+                    export MAVEN_OPTS='-Xmx2g -Xms1g'
+                    cd /usr/src/app
                     mvn clean package -DskipTests
+                "
+                
+                # Copy the built files back
+                docker cp temp-maven:/usr/src/app/target ./target
+                
+                # Clean up
+                docker rm -f temp-maven
+                
+                echo "Maven build completed"
             '''
         }
     }
