@@ -24,16 +24,16 @@ pipeline {
                 # Clean up any existing container first
                 docker rm -f temp-maven || true
                 
-                # Create container with more memory and proper Java opts
-                docker create --name temp-maven --memory=4g maven:latest
+                # Create container with maximum memory and swap
+                docker create --name temp-maven --memory=8g --memory-swap=12g maven:latest
                 docker cp . temp-maven:/usr/src/app
                 docker start temp-maven
                 
-                # Run Maven with memory settings
+                # Run Maven with larger heap and parallel disabled
                 docker exec temp-maven sh -c "
-                    export MAVEN_OPTS='-Xmx2g -Xms1g'
+                    export MAVEN_OPTS='-Xmx6g -Xms2g -XX:MaxPermSize=512m'
                     cd /usr/src/app
-                    mvn clean package -DskipTests
+                    mvn clean package -DskipTests -T 1
                 "
                 
                 # Copy the built files back
